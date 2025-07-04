@@ -24,3 +24,4 @@ The backend is developed using Node.js and Express to serve API requests and han
 Database (MongoDB):
 MongoDB is used to store the document content as a single document within a collection. When the server starts, it ensures there is at least one document present. All edits made by users are saved into this document, providing a persistent, centralized source of truth for the collaborative editor.
 OUTPUT:
+![Image](https://github.com/user-attachments/assets/f69a006d-1060-4f98-8edb-aaaf0c1f9c99)
