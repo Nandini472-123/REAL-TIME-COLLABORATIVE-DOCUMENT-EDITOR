@@ -1,0 +1,56 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST']
+  }
+});
+
+app.use(cors());
+app.use(express.json());
+
+// MongoDB connection
+mongoose.connect('mongodb://127.0.0.1:27017/collabdoc', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+const docSchema = new mongoose.Schema({
+  content: String
+});
+
+const Document = mongoose.model('Document', docSchema);
+
+async function initDocument() {
+  let doc = await Document.findOne();
+  if (!doc) {
+    await new Document({ content: '' }).save();
+  }
+}
+initDocument();
+
+io.on('connection', async (socket) => {
+  console.log('User connected:', socket.id);
+
+  let doc = await Document.findOne();
+  socket.emit('load-document', doc.content);
+
+  socket.on('send-changes', async (content) => {
+    await Document.updateOne({}, { content });
+    socket.broadcast.emit('receive-changes', content);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+const PORT = 4000;
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
